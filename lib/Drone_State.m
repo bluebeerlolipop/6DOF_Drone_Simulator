@@ -46,7 +46,7 @@ classdef Drone_State < handle
 
             obj.dx = zeros(12,1);
             obj.T = 0;
-            obj.M = [0;0;0]; % initial M
+            obj.M = [0;0;0]; % initial M 
 
         end
 

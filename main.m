@@ -38,6 +38,11 @@ drone1_gains = containers.Map(...
     0.2, 0.0, 0.15, ...
     10.0, 0.05, 0.0});
 
+%% Generate .mat file
+numStep = simulationTime/dt;
+stateHistory = zeros(numStep, length(drone1_initStates));
+stateHistory(1, :) = drone1_initStates';
+
 %% 객체 생성(초기화)
 % 1. import drone dynamics
 drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt);
@@ -50,113 +55,19 @@ commandSig(2) = 10.0 * D2R; % theta
 commandSig(3) = 10.0 * D2R; % psi
 commandSig(4) = -1.0; % z_dot
 
-%% Figure
-fig1 = figure('pos', [0 200 800 800]);
-h = gca;
-view(3);
-fig1.CurrentAxes.ZDir = 'Reverse';
-fig1.CurrentAxes.YDir = 'Reverse';
-
-axis equal;
-grid on;
-
-xlim([-5 5]); ylim([-5 5]); zlim([-8 0]);
-xlabel('X[m]'); ylabel('Y[m]'); zlabel('Z[m]');
-
-hold(gca, 'on');
-drone1_state = drone1.GetState();
-wHb = [RPY2Rot(drone1_state(7:9))' drone1_state(1:3);
-       0 0 0 1];
-
-drone1_world = wHb * drone1_body;
-drone1_atti = drone1_world(1:3, :);
-
-fig1_ARM13 = plot3(gca, drone1_atti(1,[1 3]), drone1_atti(2, [1 3]), drone1_atti(3, [1 3]), '-ro', 'MarkerSize', 5);
-fig1_ARM24 = plot3(gca, drone1_atti(1,[2 4]), drone1_atti(2, [2 4]), drone1_atti(3, [2 4]), '-bo', 'MarkerSize', 5);
-fig1_payload = plot3(gca, drone1_atti(1,[5 6]), drone1_atti(2, [5 6]), drone1_atti(3, [5 6]), '-k', 'Linewidth', 3);
-fig1_shadow = plot3(gca, 0, 0, 0, 'xk', 'LineWidth', 3);
-
-hold(gca, "off");
-
-%% Init. Data Fig.
-fig2 = figure('pos', [800 550 800 450]);
-subplot(2,3,1)
-title('phi[deg]');
-grid on;
-hold on;
-subplot(2,3,2)
-title('theta[deg]');
-grid on;
-hold on;
-subplot(2,3,3)
-title('psi[deg]');
-grid on;
-hold on;
-subplot(2,3,4)
-title('x[m]');
-grid on;
-hold on;
-subplot(2,3,5)
-title('y[m]');
-grid on;
-hold on;
-subplot(2,3,6)
-title('zdot[m/s]');
-grid on;
-hold on;
-
 %% SIMULATION LOOP
 for i = 1:simulationTime/dt
     drone1_state = drone1.GetState();
     u = controller1.AttitudeCtrl(drone1_state, commandSig);
     drone1.UpdateState(u);
     drone1_state = drone1.GetState();
+    stateHistory(i+1, :) = drone1_state;
 
-    %% 3D Plot
-    wHb = [RPY2Rot(drone1_state(7:9))' drone1_state(1:3); 0 0 0 1];
-    drone1_world = wHb * drone1_body;
-    drone1_atti = drone1_world(1:3, :);
-    set(fig1_ARM13, ...
-        'xData', drone1_atti(1,[1 3]), ...
-        'yData', drone1_atti(2,[1 3]), ...
-        'zData', drone1_atti(3,[1 3]));
-
-    set(fig1_ARM24, ...
-        'xData', drone1_atti(1,[2 4]), ...
-        'yData', drone1_atti(2,[2 4]), ...
-        'zData', drone1_atti(3,[2 4]));
-
-    set(fig1_payload, ...
-        'xData', drone1_atti(1,[5 6]), ...
-        'yData', drone1_atti(2,[5 6]), ...
-        'zData', drone1_atti(3,[5 6]));
-
-    set(fig1_shadow, ...
-        'xData', drone1_state(1), ...
-        'yData', drone1_state(2), ...
-        'zData', 0);
-
-    drawnow;
-    
-    %% Data Plot
-    figure(2)
-    subplot(2,3,1)
-    plot(i/100, drone1_state(7)*R2D, '.');
-    subplot(2,3,2)
-    plot(i/100, drone1_state(8)*R2D, '.');
-    subplot(2,3,3)
-    plot(i/100, drone1_state(9)*R2D, '.');
-    subplot(2,3,4)
-    plot(i/100, drone1_state(1), '.');
-    subplot(2,3,5)
-    plot(i/100, drone1_state(2), '.');
-    subplot(2,3,6)
-    plot(i/100, drone1_state(6), '.');
-
-    drawnow;
-    
     if (drone1_state(3) >= 0)
         msgbox('Crashed!!', 'Error', 'error');
         break;
     end
 end
+
+save('stateHistory.mat', 'stateHistory');
+plot_sim;
