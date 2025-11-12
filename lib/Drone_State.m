@@ -39,12 +39,12 @@ classdef Drone_State < handle
                      0, 0, params('Izz')];
 
             obj.x = initStates;
-            obj.r = obj.x(1:3);
-            obj.dr = obj.x(4:6);
-            obj.euler = obj.x(7:9);
-            obj.w = obj.x(10:12);
+            obj.r = obj.x(1:3);     % x,y,z
+            obj.dr = obj.x(4:6);    % x,y,z(dot)
+            obj.euler = obj.x(7:9); % phi, theta, psi
+            obj.w = obj.x(10:12);   % p, q, r
 
-            obj.dx = zeros(12,1);
+            obj.dx = zeros(12,1);   % state_dot term
             obj.T = 0;
             obj.M = [0;0;0]; % initial M 
 

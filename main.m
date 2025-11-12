@@ -38,22 +38,27 @@ drone1_gains = containers.Map(...
     0.2, 0.0, 0.15, ...
     10.0, 0.05, 0.0});
 
+% LQR gain(optional when you use LQR controller)
+drone1_q = [1, 1, 1, 1, 1, 1000, 0.001, 0.001, 1, 1, 1, 1]; % x,y,z,xdot,ydot,zdot,phi,theta,psi,p,q,r
+drone1_r = [1, 1, 1, 1]; %T,M1,M2,M3
+
 %% Generate .mat file
 numStep = simulationTime/dt;
 stateHistory = zeros(numStep, length(drone1_initStates));
 stateHistory(1, :) = drone1_initStates';
-
-%% 객체 생성(초기화)
-% 1. import drone dynamics
-drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt);
-% 2. import drone controller
-controller1 = Control_PID(drone1_gains, drone1_params, dt);
 
 %% command signal
 commandSig(1) = 10.0 * D2R; % phi
 commandSig(2) = 10.0 * D2R; % theta
 commandSig(3) = 10.0 * D2R; % psi
 commandSig(4) = -1.0; % z_dot
+
+%% 객체 생성(초기화)
+% 1. import drone dynamics
+drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt);
+% 2. import drone controller
+controller1 = Control_PID(drone1_gains, drone1_params, dt);
+controller2 = Control_LQR(drone1_q, drone1_r, drone1_params, commandSig);
 
 %% SIMULATION LOOP
 for i = 1:simulationTime/dt

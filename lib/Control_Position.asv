@@ -1,0 +1,62 @@
+% [x_err, y_err]' -> PID -> [theta_des, phi_des]'
+
+classdef Control_Position < handle
+    properties
+        dt
+        m
+        g
+
+        % x_des
+        x_err
+        x_err_prev
+        x_err_sum
+
+        % y_des
+        y_err
+        y_err_prev
+        y_err_sum
+
+        % z_des(altitude)
+        z_err
+        z_err_prev
+        z_err_sum
+
+        % PID gain
+        kP_theta_des
+        kI_theta_des
+        kD_theta_des
+
+        kP_phi_des
+        kI_phi_des
+        kD_phi_des
+
+        kP_z_des
+        kI_z_des
+        kD_z_des
+    end
+    %% METHODS
+    methods
+        function obj=Control_Position(gains, droneParams, dt)
+            obj.g = 9.81;
+            obj.dt = dt;
+            obj.m = droneParams('mass');
+
+            obj.x_err = 0;
+            obj.x_err_prev = 0;
+            obj.x_err_sum = 0;
+
+            obj.y_err = 0;
+            obj.y_err_prev = 0;
+            obj.y_err_sum = 0;
+
+            obj.z_err = 0;
+            obj.z_err_prev = 0;
+            obj.z_err_sum = 0;
+
+            kP_theta_des = gains('P_theta_des');
+            kI_theta_des = gains('I_theta_des');
+            kD_theta_des = gains('D_theta_des');
+
+            kP_phi_des = gains('P_phi_des');
+            kI_phi_des = gains('I_phi_des');
+            kD_phi_des = gains('D_phi_des');
