@@ -1,14 +1,14 @@
 addpath('./lib');
-load('stateHistory.mat');
+load('stateHistory_test.mat');
 
-initState = stateHistory(1,:).';
+initState = stateHistory_test(1,:).';
 
 %% DEFINE
 R2D = 180/pi;
 D2R = pi/180;
 
 %% Simulation time
-simulationTime = 10;
+simulationTime = 5;
 dt = 0.01;
 N  = floor(simulationTime/dt);
 t0 = tic;
@@ -62,7 +62,7 @@ for k=1:6, xlim(ax2(k), [0 simulationTime]); end
 
 %% ===== SIMULATION LOOP =====
 for i = 1:N
-    drone1_state = stateHistory(i+1, :).';
+    drone1_state = stateHistory_test(i+1, :).';
     ti = t(i+1);
 
     % 3D Plot
@@ -81,7 +81,7 @@ for i = 1:N
     addpoints(h(3), ti, drone1_state(9)*R2D);
     addpoints(h(4), ti, drone1_state(1));
     addpoints(h(5), ti, drone1_state(2));
-    addpoints(h(6), ti, drone1_state(3)); %6
+    addpoints(h(6), ti, drone1_state(6)); %6
 
     %drawnow
     drawnow limitrate
@@ -119,7 +119,7 @@ zdot_des  = -1.0;   % [m/s]
 
 %% 3. 시간 및 명령 벡터 생성
 % stateHistory는 (N+1) x 12 크기입니다. (0초부터 N*dt초까지)
-numPoints = size(stateHistory, 1);
+numPoints = size(stateHistory_test, 1);
 t = (0:numPoints-1)' * dt; % 시간 벡터 생성 (0초부터 시작)
 
 % 플롯을 위해 명령 벡터를 시간 벡터와 동일한 크기로 생성
@@ -134,7 +134,7 @@ sgtitle('Drone State vs. Command Inputs', 'FontSize', 14, 'FontWeight', 'bold');
 
 % Plot 1: Roll (phi)
 subplot(2, 2, 1);
-plot(t, stateHistory(:, 7) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 7번째 열 (phi)
+plot(t, stateHistory_test(:, 7) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 7번째 열 (phi)
 hold on;
 plot(t, phi_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;
@@ -145,7 +145,7 @@ legend('Roll (\phi)', 'Command', 'Location', 'southeast');
 
 % Plot 2: Pitch (theta)
 subplot(2, 2, 2);
-plot(t, stateHistory(:, 8) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 8번째 열 (theta)
+plot(t, stateHistory_test(:, 8) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 8번째 열 (theta)
 hold on;
 plot(t, theta_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;
@@ -156,7 +156,7 @@ legend('Pitch (\theta)', 'Command', 'Location', 'southeast');
 
 % Plot 3: Yaw (psi)
 subplot(2, 2, 3);
-plot(t, stateHistory(:, 9) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 9번째 열 (psi)
+plot(t, stateHistory_test(:, 9) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 9번째 열 (psi)
 hold on;
 plot(t, psi_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;
@@ -167,7 +167,7 @@ legend('Yaw (\psi)', 'Command', 'Location', 'southeast');
 
 % Plot 4: Z-dot (Vertical Speed)
 subplot(2, 2, 4);
-plot(t, stateHistory(:, 6), 'r', 'LineWidth', 1.5); % stateHistory의 6번째 열 (Z-dot)
+plot(t, stateHistory_test(:, 6), 'r', 'LineWidth', 1.5); % stateHistory의 6번째 열 (Z-dot)
 hold on;
 plot(t, zdot_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;

@@ -1,4 +1,4 @@
-classdef Control_PID < handle
+classdef Control_PID_test < handle
     %% MEMBERS
     properties
         dt
@@ -44,7 +44,7 @@ classdef Control_PID < handle
 
     %% METHODS
     methods
-        function obj = Control_PID(gains, droneParams, dt)
+        function obj = Control_PID_test(gains, droneParams, dt)
             obj.g = 9.81;
             obj.dt = dt;
             obj.m = droneParams('mass');
@@ -104,7 +104,7 @@ classdef Control_PID < handle
             u(1) = obj.m * obj.g - (obj.kP_zdot * obj.zdot_err + ...
                                         obj.kI_zdot * obj.zdot_err_sum + ...
                                         obj.kD_zdot * (obj.zdot_err - obj.zdot_err_prev)/obj.dt);
-            
+
             obj.zdot_err_sum = obj.zdot_err_sum + obj.zdot_err;
             obj.zdot_err_prev = obj.zdot_err;
 

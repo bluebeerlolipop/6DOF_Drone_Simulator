@@ -8,10 +8,12 @@ addpath('./ctrl');
 R2D = 180/pi;
 D2R = pi/180;
 %% Simulation time
-simulationTime = 10;
+simulationTime = 5;
 dt = 0.01;
 
 %% INITIAL PARAMS
+% can initialize parameter, when using PID control, you must initialize
+% Gain K.
 drone1_params = containers.Map({'mass', 'armLength', 'Ixx', 'Iyy', 'Izz'}, ...
     {1.25, 0.265, 0.0232, 0.0232, 0.0468});
 drone1_initStates = [0, 0, -6, ...       % X, Y, Z
@@ -26,59 +28,47 @@ drone1_body = [ 0.265,      0,     0, 1; ...
                     0,      0,     0, 1; ...
                     0,      0, -0.15, 1]';
 
-%% Position Controller Gain
-pos1_gains = containers.Map(...
-    {'P_x', 'I_x', 'D_x', ...
-    'P_y', 'I_y', 'D_y', ...
-    'P_z', 'I_z', 'D_z'}, ...
-    {0.2, 0.0, 0.15, ...
-    0.2, 0.0, 0.15, ...
-    1.0, 0.0, 2.0});
-
 %% Attitude Controller Gain
 %PID Gain(optional when you use PID controller)
 drone1_gains = containers.Map(...
     {'P_phi', 'I_phi', 'D_phi', ...
     'P_theta', 'I_theta', 'D_theta', ...
-    'P_psi', 'I_psi', 'D_psi'}, ...
+    'P_psi', 'I_psi', 'D_psi', ...
+    'P_zdot', 'I_zdot', 'D_zdot'}, ...
     {0.2, 0.0, 0.15, ...
     0.2, 0.0, 0.15, ...
-    0.2, 0.0, 0.15});
+    0.2, 0.0, 0.15, ...
+    5.0, 0.01, 0.2});
+
+% LQR gain(optional when you use LQR controller)
+drone1_q = [1, 1, 1, 1, 1, 1000, 0.001, 0.001, 1, 1, 1, 1]; % x,y,z,xdot,ydot,zdot,phi,theta,psi,p,q,r
+drone1_r = [1, 1, 1, 1]; %T,M1,M2,M3
 
 %% Generate .mat file
 numStep = simulationTime/dt;
-stateHistory = zeros(numStep, length(drone1_initStates));
-stateHistory(1, :) = drone1_initStates';
+stateHistory_test = zeros(numStep, length(drone1_initStates));
+stateHistory_test(1, :) = drone1_initStates';
 
 %% command signal
-pos_cmd = [0.1, -0.2, -6];
-psi_cmd = 0.0 * D2R;
-commandSig(1) = pos_cmd(1); % x
-commandSig(2) = pos_cmd(2); % y
-commandSig(3) = pos_cmd(3); % z
-commandSig(4) = psi_cmd; % psi
+commandSig(1) = 10.0 * D2R; % phi
+commandSig(2) = 10.0 * D2R; % theta
+commandSig(3) = 10.0 * D2R; % psi
+commandSig(4) = -1.0; % z_dot
 
 %% 객체 생성(초기화)
 % 1. import drone dynamics
 drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt);
-% 2. import position controller
-controller_pos = Control_Position(pos1_gains, drone1_params, dt);
-% 3. import attitude controller
-controller1 = Control_PID(drone1_gains, dt);
+% 2. import attitude controller
+controller1 = Control_PID_test(drone1_gains, drone1_params, dt);
+controller2 = Control_LQR(drone1_q, drone1_r, drone1_params, commandSig);
 
 %% SIMULATION LOOP
 for i = 1:simulationTime/dt
     drone1_state = drone1.GetState();
-    [u_pos, cmd] = controller_pos.PositionCtrl(drone1_state, commandSig);
-    u_control = controller1.AttitudeCtrl(drone1_state, cmd);
-    u(1) = u_pos;           % thrust
-    u(2) = u_control(1);    % M1
-    u(3) = u_control(2);    % M2
-    u(4) = u_control(3);    % M3
-    u = u(:);               % column vector로 변환
+    u = controller1.AttitudeCtrl(drone1_state, commandSig);
     drone1.UpdateState(u);
     drone1_state = drone1.GetState();
-    stateHistory(i+1, :) = drone1_state;
+    stateHistory_test(i+1, :) = drone1_state;
 
     if (drone1_state(3) >= 0)
         msgbox('Crashed!!', 'Error', 'error');
@@ -86,5 +76,5 @@ for i = 1:simulationTime/dt
     end
 end
 
-save('stateHistory.mat', 'stateHistory');
-plot_sim;
+save('stateHistory_test.mat', 'stateHistory_test');
+plot_test;
