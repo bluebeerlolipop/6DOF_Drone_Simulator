@@ -51,7 +51,7 @@ stateHistory = zeros(numStep, length(drone1_initStates));
 stateHistory(1, :) = drone1_initStates';
 
 %% command signal
-pos_cmd = [0.1, -0.2, -6];
+pos_cmd = [1.0, -2.0, -6];
 psi_cmd = 0.0 * D2R;
 commandSig(1) = pos_cmd(1); % x
 commandSig(2) = pos_cmd(2); % y

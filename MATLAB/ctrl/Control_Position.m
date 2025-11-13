@@ -89,7 +89,7 @@ classdef Control_Position < handle
                                     obj.kI_z * obj.z_err_sum + ...
                                     obj.kD_z * (obj.z_err - obj.z_err_prev)/obj.dt);
             
-            obj.z_err_sum = obj.z_err_sum + obj.z_err;
+            obj.z_err_sum = obj.z_err_sum + obj.z_err*obj.dt;
             obj.z_err_prev = obj.z_err;
 
             % phi
@@ -97,7 +97,7 @@ classdef Control_Position < handle
                         obj.kI_y * obj.y_err_sum + ...
                         obj.kD_y * (obj.y_err - obj.y_err_prev)/obj.dt);
 
-            obj.y_err_sum = obj.y_err_sum + obj.y_err;
+            obj.y_err_sum = obj.y_err_sum + obj.y_err*obj.dt;
             obj.y_err_prev = obj.y_err;
 
             % theta
@@ -105,7 +105,7 @@ classdef Control_Position < handle
                         obj.kI_x * obj.x_err_sum + ...
                         obj.kD_x * (obj.x_err - obj.x_err_prev)/obj.dt);
 
-            obj.x_err_sum = obj.x_err_sum + obj.x_err;
+            obj.x_err_sum = obj.x_err_sum + obj.x_err*obj.dt;
             obj.x_err_prev = obj.x_err;
 
             % phi

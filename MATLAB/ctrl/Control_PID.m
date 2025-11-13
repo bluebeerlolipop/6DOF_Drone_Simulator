@@ -85,21 +85,21 @@ classdef Control_PID < handle
                         obj.kI_phi * obj.phi_err_sum + ...
                         obj.kD_phi * (obj.phi_err - obj.phi_err_prev)/obj.dt);
             
-            obj.phi_err_sum = obj.phi_err_sum + obj.phi_err;
+            obj.phi_err_sum = obj.phi_err_sum + obj.phi_err*obj.dt;
             obj.phi_err_prev = obj.phi_err;
 
             u(2) = (obj.kP_theta * obj.theta_err + ...
                         obj.kI_theta * obj.theta_err_sum + ...
                         obj.kD_theta * (obj.theta_err - obj.theta_err_prev)/obj.dt);
             
-            obj.theta_err_sum = obj.theta_err_sum + obj.theta_err;
+            obj.theta_err_sum = obj.theta_err_sum + obj.theta_err*obj.dt;
             obj.theta_err_prev = obj.theta_err;
 
             u(3) = (obj.kP_psi * obj.psi_err + ...
                         obj.kI_psi * obj.psi_err_sum + ...
                         obj.kD_psi * (obj.psi_err - obj.psi_err_prev)/obj.dt);
             
-            obj.psi_err_sum = obj.psi_err_sum + obj.psi_err;
+            obj.psi_err_sum = obj.psi_err_sum + obj.psi_err*obj.dt;
             obj.psi_err_prev = obj.psi_err;
 
         end
