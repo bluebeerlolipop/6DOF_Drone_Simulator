@@ -1,6 +1,6 @@
 import numpy as np
 
-class Contrl_PID:
+class Control_PID:
     def __init__(self, gains, dt):
         self.dt = dt
 
@@ -9,7 +9,7 @@ class Contrl_PID:
         self.phi_err_sum = 0.0
 
         self.theta_err = 0.0
-        spsi = 0.0
+        self.theta_err_prev = 0.0
         self.theta_err_sum  = 0.0
 
         self.psi_err = 0.0
@@ -61,3 +61,5 @@ class Contrl_PID:
         
         self.psi_err_sum += self.psi_err * self.dt
         self.psi_err_prev = self.psi_err
+
+        return u

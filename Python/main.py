@@ -1,13 +1,8 @@
 import numpy as np
 import os
 import sys
-# from drone_state import Drone_State
-# from control_position import Control_Position
-# from control_pid import Control_PID
-# import matplotlib.pyplot as plt # For plotting results
+import matplotlib.pyplot as plt
 
-# --- (Import classes from other files) ---
-# (위의 2, 3, 4번 코드들이 별도 파일로 저장되어 있다고 가정)
 script_dir = os.path.dirname(os.path.abspath(__file__))
 
 lib_path = os.path.join(script_dir, 'lib')
@@ -18,23 +13,19 @@ if lib_path not in sys.path:
 if ctrl_path not in sys.path:
     sys.path.append(ctrl_path)
 
-try:
-    from Drone_State import Drone_State
-    from RPY2Rot import RPY2Rot
-    from Control_Position import Control_Position
-    from Control_PID import Control_PID
-except ImportError as e:
-    print(f"Error importing modules: {e}")
-    print("Ensure 'lib' contains drone_state.py and RPY2Rot.py")
-    print("Ensure 'ctrl' contains control_position.py and control_pid.py")
-    sys.exit(1) # 문제가 있으면 스크립트 중지
+
+from Drone_State import Drone_State
+from RPY2Rot import RPY2Rot
+from Control_Position import Control_Position
+from Control_PID import Control_PID
+from plot_sim import plot_simulation_results
 
 def main():
     R2D = 180 / np.pi
     D2R = np.pi / 180
     
     # Simulation time
-    simulationTime = 10.0
+    simulationTime = 20.0
     dt = 0.01
     numStep = int(simulationTime / dt)
     
@@ -55,7 +46,7 @@ def main():
     pos1_gains = {
         'P_x': 0.2, 'I_x': 0.0, 'D_x': 0.15,
         'P_y': 0.2, 'I_y': 0.0, 'D_y': 0.15,
-        'P_z': 1.0, 'I_z': 0.0, 'D_z': 2.0
+        'P_z': 1.0, 'I_z': 0.0, 'D_z': 2.0 # 2.0
     }
     
     # Attitude Controller Gains
@@ -70,7 +61,7 @@ def main():
     stateHistory[0, :] = drone1_initStates
     
     # Command signal
-    pos_cmd = [0.1, -0.2, -6]
+    pos_cmd = [1.0, -1.0, -6]
     psi_cmd = 0.0 * D2R
     commandSig = np.array([pos_cmd[0], pos_cmd[1], pos_cmd[2], psi_cmd])
 
@@ -110,18 +101,11 @@ def main():
     print("Simulation finished.")
     
     # Save results
-    np.save('stateHistory.npy', stateHistory)
-    print("State history saved to 'stateHistory.npy'")
-
-    # (Optional) Plotting
-    # plt.figure()
-    # plt.plot(stateHistory[:, 0], label='X')
-    # plt.plot(stateHistory[:, 1], label='Y')
-    # plt.plot(stateHistory[:, 2], label='Z')
-    # plt.legend()
-    # plt.title("Position")
-    # plt.show()
+    save_path = os.path.join(script_dir, 'stateHistory.npy')
+    np.save(save_path, stateHistory)
 
 # Standard Python entry point
 if __name__ == "__main__":
     main()
+    refSig = [1.0, -1.0, -6.0, 0.0]
+    plot_simulation_results(refSig)

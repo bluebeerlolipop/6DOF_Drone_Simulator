@@ -1,6 +1,6 @@
 import numpy as np
 
-class Control_PID:
+class Control_Position:
     def __init__(self, gains, droneParams, dt):
         self.g = 9.81
         self.dt = dt
@@ -47,20 +47,25 @@ class Control_PID:
                                       self.kI_z * self.z_err_sum +
                                       self.kD_z * (self.z_err - self.z_err_prev)/self.dt)
         
-        self.z_err_sum = self.z_err_sum + self.z_err * self.dt
+        self.z_err_sum  += self.z_err * self.dt
         self.z_err_prev = self.z_err
 
-        theta_cmd = (self.kP_y * self.y_err +
-                     self.kI_y * self.y_err_sum +
-                     self.kD_y * (self.y_err - self.y_err_prev)/self.dt)
-        self.y_err_sum = self.y_err_sum + self.y_err * self.dt
-        self.y_err_prev = self.y_err
-        
-        phi_cmd = - (self.kP_x * self.x_err +
+        theta_cmd =  - (self.kP_x * self.x_err +
                      self.kI_x * self.x_err_sum +
                      self.kD_x * (self.x_err - self.x_err_prev)/self.dt)
-        self.x_err_sum = self.x_err_sum + self.x_err * self.dt
+        
+        self.x_err_sum += self.x_err * self.dt
         self.x_err_prev = self.x_err
+
+        phi_cmd = (self.kP_y * self.y_err +
+                     self.kI_y * self.y_err_sum +
+                     self.kD_y * (self.y_err - self.y_err_prev)/self.dt)
+        
+        self.y_err_sum += self.y_err * self.dt
+        self.y_err_prev = self.y_err
+        
 
         u = u_thrust
         cmd = np.array([phi_cmd, theta_cmd, psi_cmd])
+
+        return u, cmd

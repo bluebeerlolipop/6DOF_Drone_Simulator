@@ -15,16 +15,20 @@ class Drone_State:
             [0, params['Iyy'], 0],
             [0, 0, params['Izz']]
         ])
+        self.I_inv = np.linalg.inv(self.I)
 
-        self.x = initStates
-        self.r = self.x[0:3]
-        self.dr = self.x[3:6]
-        self.euler = self.x[6:9]
-        self.w = self.x[9:12]
+        self.x = initStates.flatten()
+        self.update_internal_states()
 
         self.dx = np.zeros(12)
         self.T = 0.0
         self.M = np.zeros(3)
+
+    def update_internal_states(self):
+        self.r = self.x[0:3]
+        self.dr = self.x[3:6]
+        self.euler = self.x[6:9]
+        self.w = self.x[9:12]
 
     def GetState(self):
         return self.x
@@ -44,7 +48,7 @@ class Drone_State:
         ])
         self.dx[6:9] = E @ self.w
 
-        self.dx[9:12] = np.linalg.inv(self.I) @ (self.M - np.cross(self.w, self.I @ self.w))
+        self.dx[9:12] = self.I_inv @ (self.M - np.cross(self.w, self.I @ self.w))
 
     def UpdateState(self, u):
         self.T = u[0]
@@ -55,7 +59,4 @@ class Drone_State:
         self.EvalEOM()
         self.x = self.x + self.dx * self.dt
 
-        self.r = self.x[0:3]
-        self.dr = self.x[3:6]
-        self.euler = self.x[6:9]
-        self.w = self.x[9:12]
+        self.update_internal_states()
