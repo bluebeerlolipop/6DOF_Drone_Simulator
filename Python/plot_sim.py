@@ -120,5 +120,5 @@ def plot_simulation_results(refSig):
 
 
 if __name__ == "__main__":
-    refSig = [1.0, -1.0, -6.0, 0.0]
+    refSig = [0.5, -1.0, -5.0, 0.0]
     plot_simulation_results(refSig)

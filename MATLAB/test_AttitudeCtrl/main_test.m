@@ -8,7 +8,7 @@ addpath('./ctrl');
 R2D = 180/pi;
 D2R = pi/180;
 %% Simulation time
-simulationTime = 5;
+simulationTime = 2;
 dt = 0.01;
 
 %% INITIAL PARAMS

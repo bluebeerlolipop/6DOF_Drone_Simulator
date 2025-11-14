@@ -35,14 +35,14 @@ classdef Control_LQR < handle
         %% CONTROLLER
         function u = AttitudeCtrl(obj, currentState, refSig)
             
-            phi_des = refSig(1);
-            theta_des = refSig(2);
-            psi_des = refSig(3);
-            zdot_des = refSig(4);
+            x_des = refSig(1);
+            y_des = refSig(2);
+            z_des = refSig(3);
+            psi_des = refSig(4);
             
-            ref_vector = [currentState(1), currentState(2), currentState(3),...
-                         0, 0, zdot_des,...
-                         phi_des, theta_des, psi_des,...
+            ref_vector = [x_des, y_des, z_des,...
+                         0, 0, 0,...
+                         0, 0, psi_des,...
                          0, 0, 0]';
 
             current_x = currentState;

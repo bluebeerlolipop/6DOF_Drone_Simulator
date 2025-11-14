@@ -8,7 +8,7 @@ R2D = 180/pi;
 D2R = pi/180;
 
 %% Simulation time
-simulationTime = 5;
+simulationTime = 2;
 dt = 0.01;
 N  = floor(simulationTime/dt);
 t0 = tic;
@@ -60,8 +60,32 @@ nexttile(6); ax2(6)=gca; title('zdot [m/s]');    grid on; hold on; h(6)=animated
 
 for k=1:6, xlim(ax2(k), [0 simulationTime]); end
 
+%% MP4 setting
+video_filename = 'drone_animation_test.mp4';
+v = VideoWriter(video_filename, 'MPEG-4');
+
+fps_video = 25;
+v.FrameRate = fps_video;
+frame_skip = 4;
+
+video_filename_2d = 'drone_plots_2d_test.mp4';
+v2 = VideoWriter(video_filename_2d, 'MPEG-4');
+v2.FrameRate = fps_video;
+
+open(v);
+open(v2);
 %% ===== SIMULATION LOOP =====
 for i = 1:N
+
+    next = next + dt;
+    while toc(t0) < next
+        pause(dt/10);
+    end
+
+    if mod(i, frame_skip) ~= 0
+        continue;
+    end
+
     drone1_state = stateHistory_test(i+1, :).';
     ti = t(i+1);
 
@@ -81,30 +105,15 @@ for i = 1:N
     addpoints(h(3), ti, drone1_state(9)*R2D);
     addpoints(h(4), ti, drone1_state(1));
     addpoints(h(5), ti, drone1_state(2));
-    addpoints(h(6), ti, drone1_state(6)); %6
+    addpoints(h(6), ti, drone1_state(3)); %6
 
-    %drawnow
-    drawnow limitrate
-    %pause(dt)
+    drawnow;
 
+    frame1 = getframe(fig1);
+    writeVideo(v, frame1);
 
-    % frame = getframe(fig1); % 3D 애니메이션(fig1)을 캡처합니다.
-    % [imind, cm] = rgb2ind(frame.cdata, 256); % GIF 형식에 맞게 변환
-    % 
-    % gif_delay_time = 0.05;
-    % 
-    % if i == 1
-    %     % 첫 번째 프레임: 새 GIF 파일 생성
-    %     imwrite(imind, cm, gif_filename, 'gif', 'Loopcount', inf, 'DelayTime', dt);
-    % else
-    %     % 다음 프레임들: 기존 파일에 추가
-    %     imwrite(imind, cm, gif_filename, 'gif', 'WriteMode', 'append', 'DelayTime', dt);
-    % end
-
-    next = next + dt;
-    while toc(t0) < next
-        pause(dt/10);
-    end
+    frame2 = getframe(fig2);
+    writeVideo(v2, frame2);
 
     if (drone1_state(3) >= 0)
         msgbox('Crashed!!', 'Error', 'error');
@@ -112,17 +121,18 @@ for i = 1:N
     end
 end
 
+close(v);
+close(v2);
+
+%% command plot setting
 phi_des   = 10.0;   % [deg]
 theta_des = 10.0;   % [deg]
 psi_des   = 10.0;   % [deg]
 zdot_des  = -1.0;   % [m/s]
 
-%% 3. 시간 및 명령 벡터 생성
-% stateHistory는 (N+1) x 12 크기입니다. (0초부터 N*dt초까지)
 numPoints = size(stateHistory_test, 1);
-t = (0:numPoints-1)' * dt; % 시간 벡터 생성 (0초부터 시작)
+t = (0:numPoints-1)' * dt;
 
-% 플롯을 위해 명령 벡터를 시간 벡터와 동일한 크기로 생성
 phi_cmd_vec   = ones(numPoints, 1) * phi_des;
 theta_cmd_vec = ones(numPoints, 1) * theta_des;
 psi_cmd_vec   = ones(numPoints, 1) * psi_des;

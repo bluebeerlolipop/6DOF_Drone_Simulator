@@ -56,12 +56,35 @@ nexttile(2); ax2(2)=gca; title('\theta [deg]'); grid on; hold on; h(2)=animatedl
 nexttile(3); ax2(3)=gca; title('\psi [deg]'); grid on; hold on; h(3)=animatedline('Marker','.', 'LineStyle','none');
 nexttile(4); ax2(4)=gca; title('x [m]');      grid on; hold on; h(4)=animatedline('Marker','.', 'LineStyle','none');
 nexttile(5); ax2(5)=gca; title('y [m]');      grid on; hold on; h(5)=animatedline('Marker','.', 'LineStyle','none');
-nexttile(6); ax2(6)=gca; title('zdot [m/s]');    grid on; hold on; h(6)=animatedline('Marker','.', 'LineStyle','none');
+nexttile(6); ax2(6)=gca; title('z [m]');    grid on; hold on; h(6)=animatedline('Marker','.', 'LineStyle','none');
 
 for k=1:6, xlim(ax2(k), [0 simulationTime]); end
+%% MP4 setting
+video_filename = 'drone_animation.mp4';
+v = VideoWriter(video_filename, 'MPEG-4');
 
+fps_video = 25;
+v.FrameRate = fps_video;
+frame_skip = 4;
+
+video_filename_2d = 'drone_plots_2d.mp4';
+v2 = VideoWriter(video_filename_2d, 'MPEG-4');
+v2.FrameRate = fps_video;
+
+open(v);
+open(v2);
 %% ===== SIMULATION LOOP =====
 for i = 1:N
+
+    next = next + dt;
+    while toc(t0) < next
+        pause(dt/10);
+    end
+
+    if mod(i, frame_skip) ~= 0
+        continue;
+    end
+
     drone1_state = stateHistory(i+1, :).';
     ti = t(i+1);
 
@@ -83,28 +106,13 @@ for i = 1:N
     addpoints(h(5), ti, drone1_state(2));
     addpoints(h(6), ti, drone1_state(3)); %6
 
-    %drawnow
-    drawnow limitrate
-    %pause(dt)
+    drawnow;
 
+    frame1 = getframe(fig1);
+    writeVideo(v, frame1);
 
-    % frame = getframe(fig1); % 3D 애니메이션(fig1)을 캡처합니다.
-    % [imind, cm] = rgb2ind(frame.cdata, 256); % GIF 형식에 맞게 변환
-    % 
-    % gif_delay_time = 0.05;
-    % 
-    % if i == 1
-    %     % 첫 번째 프레임: 새 GIF 파일 생성
-    %     imwrite(imind, cm, gif_filename, 'gif', 'Loopcount', inf, 'DelayTime', dt);
-    % else
-    %     % 다음 프레임들: 기존 파일에 추가
-    %     imwrite(imind, cm, gif_filename, 'gif', 'WriteMode', 'append', 'DelayTime', dt);
-    % end
-
-    next = next + dt;
-    while toc(t0) < next
-        pause(dt/10);
-    end
+    frame2 = getframe(fig2);
+    writeVideo(v2, frame2);
 
     if (drone1_state(3) >= 0)
         msgbox('Crashed!!', 'Error', 'error');
@@ -112,67 +120,113 @@ for i = 1:N
     end
 end
 
-phi_des   = 10.0;   % [deg]
-theta_des = 10.0;   % [deg]
-psi_des   = 10.0;   % [deg]
-zdot_des  = -1.0;   % [m/s]
+close(v);
+close(v2);
 
-%% 3. 시간 및 명령 벡터 생성
-% stateHistory는 (N+1) x 12 크기입니다. (0초부터 N*dt초까지)
+%% command plot setting
+x_des   = 0.5;      % [m]
+y_des   = -1.0;     % [m]
+z_des   = -5.0;     % [m]
+psi_des = 10.0;      % [deg]
+
 numPoints = size(stateHistory, 1);
-t = (0:numPoints-1)' * dt; % 시간 벡터 생성 (0초부터 시작)
+t = (0:numPoints-1)' * dt;
 
-% 플롯을 위해 명령 벡터를 시간 벡터와 동일한 크기로 생성
-phi_cmd_vec   = ones(numPoints, 1) * phi_des;
-theta_cmd_vec = ones(numPoints, 1) * theta_des;
-psi_cmd_vec   = ones(numPoints, 1) * psi_des;
-zdot_cmd_vec  = ones(numPoints, 1) * zdot_des;
+x_cmd   = ones(numPoints, 1) * x_des;
+y_cmd = ones(numPoints, 1) * y_des;
+z_cmd   = ones(numPoints, 1) * z_des;
+psi_cmd  = ones(numPoints, 1) * psi_des;
 
-%% 4. 2x2 Subplot 생성
-fig = figure('Name', 'State Variables vs. Commands', 'pos', [100 100 800 600]);
+%% State variable plot(phi, theta, psi, z_dot)
+fig = figure('Name', 'State Variables((\phi), (\theta), (\psi), z_dot)', 'pos', [100 100 800 600]);
 sgtitle('Drone State vs. Command Inputs', 'FontSize', 14, 'FontWeight', 'bold');
 
 % Plot 1: Roll (phi)
 subplot(2, 2, 1);
-plot(t, stateHistory(:, 7) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 7번째 열 (phi)
+plot(t, stateHistory(:, 7) * R2D, 'r', 'LineWidth', 1.5);
 hold on;
-plot(t, phi_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;
 title('Roll (\phi) History');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
-legend('Roll (\phi)', 'Command', 'Location', 'southeast');
+legend('Roll (\phi)', 'Location', 'southeast');
 
 % Plot 2: Pitch (theta)
 subplot(2, 2, 2);
-plot(t, stateHistory(:, 8) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 8번째 열 (theta)
+plot(t, stateHistory(:, 8) * R2D, 'r', 'LineWidth', 1.5);
 hold on;
-plot(t, theta_cmd_vec, 'b--', 'LineWidth', 1.5);
 grid on;
 title('Pitch (\theta) History');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
-legend('Pitch (\theta)', 'Command', 'Location', 'southeast');
+legend('Pitch (\theta)', 'Location', 'southeast');
 
 % Plot 3: Yaw (psi)
 subplot(2, 2, 3);
-plot(t, stateHistory(:, 9) * R2D, 'r', 'LineWidth', 1.5); % stateHistory의 9번째 열 (psi)
+plot(t, stateHistory(:, 9) * R2D, 'r', 'LineWidth', 1.5);
 hold on;
-plot(t, psi_cmd_vec, 'b--', 'LineWidth', 1.5);
+grid on;
+title('Yaw (\psi) History');
+xlabel('Time (s)');
+ylabel('Angle (deg)');
+legend('Yaw (\psi)', 'Location', 'southeast');
+
+% Plot 4: Z-dot (Vertical Speed)
+subplot(2, 2, 4);
+plot(t, stateHistory(:, 6), 'r', 'LineWidth', 1.5);
+hold on;
+grid on;
+title('Vertical Speed (Z-dot) History');
+xlabel('Time (s)');
+ylabel('Speed (m/s)');
+legend('Z-dot', 'Location', 'southeast');
+saveas(fig, 'drone_state_results(1).png');
+
+%% State variables plot(x, y, z, psi) 
+fig = figure('Name', 'State Variables(x, y, z, (\psi))', 'pos', [100 100 800 600]);
+sgtitle('Drone State vs. Command Inputs', 'FontSize', 14, 'FontWeight', 'bold');
+
+% Plot 1: X
+subplot(2, 2, 1);
+plot(t, stateHistory(:, 1), 'r', 'LineWidth', 1.5);
+hold on;
+plot(t, x_cmd, 'b--', 'LineWidth', 1.5);
+grid on;
+title('X History');
+xlabel('Time (s)');
+ylabel('Position (m)');
+legend('X', 'Command', 'Location', 'southeast');
+
+% Plot 2: Y
+subplot(2, 2, 2);
+plot(t, stateHistory(:, 2), 'r', 'LineWidth', 1.5);
+hold on;
+plot(t, y_cmd, 'b--', 'LineWidth', 1.5);
+grid on;
+title('Y History');
+xlabel('Time (s)');
+ylabel('Position (m)');
+legend('Y', 'Command', 'Location', 'southeast');
+
+% Plot 3: Z
+subplot(2, 2, 3);
+plot(t, stateHistory(:, 3), 'r', 'LineWidth', 1.5);
+hold on;
+plot(t, z_cmd, 'b--', 'LineWidth', 1.5);
+grid on;
+title('Z History');
+xlabel('Time (s)');
+ylabel('Position (m)');
+legend('Z', 'Command', 'Location', 'southeast');
+
+% Plot 4: psi
+subplot(2, 2, 4);
+plot(t, stateHistory(:, 9)*R2D, 'r', 'LineWidth', 1.5);
+hold on;
+plot(t, psi_cmd, 'b--', 'LineWidth', 1.5);
 grid on;
 title('Yaw (\psi) History');
 xlabel('Time (s)');
 ylabel('Angle (deg)');
 legend('Yaw (\psi)', 'Command', 'Location', 'southeast');
-
-% Plot 4: Z-dot (Vertical Speed)
-subplot(2, 2, 4);
-plot(t, stateHistory(:, 6), 'r', 'LineWidth', 1.5); % stateHistory의 6번째 열 (Z-dot)
-hold on;
-plot(t, zdot_cmd_vec, 'b--', 'LineWidth', 1.5);
-grid on;
-title('Vertical Speed (Z-dot) History');
-xlabel('Time (s)');
-ylabel('Speed (m/s)');
-legend('Z-dot', 'Command', 'Location', 'southeast');
-saveas(fig, 'drone_state_results.png');
+saveas(fig, 'drone_state_results(2).png');

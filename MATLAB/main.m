@@ -36,7 +36,6 @@ pos1_gains = containers.Map(...
     1.0, 0.0, 2.0});
 
 %% Attitude Controller Gain
-%PID Gain(optional when you use PID controller)
 drone1_gains = containers.Map(...
     {'P_phi', 'I_phi', 'D_phi', ...
     'P_theta', 'I_theta', 'D_theta', ...
@@ -44,15 +43,16 @@ drone1_gains = containers.Map(...
     {0.2, 0.0, 0.15, ...
     0.2, 0.0, 0.15, ...
     0.2, 0.0, 0.15});
-
+drone1_q = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]; % x,y,z,xdot,ydot,zdot,phi,theta,psi,p,q,r
+drone1_r = [1, 1, 1, 1]; %T,M1,M2,M3
 %% Generate .mat file
 numStep = simulationTime/dt;
 stateHistory = zeros(numStep, length(drone1_initStates));
 stateHistory(1, :) = drone1_initStates';
 
 %% command signal
-pos_cmd = [1.0, -2.0, -6];
-psi_cmd = 0.0 * D2R;
+pos_cmd = [0.5, -1.0, -5];
+psi_cmd = 10.0 * D2R;
 commandSig(1) = pos_cmd(1); % x
 commandSig(2) = pos_cmd(2); % y
 commandSig(3) = pos_cmd(3); % z
@@ -65,17 +65,22 @@ drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt);
 controller_pos = Control_Position(pos1_gains, drone1_params, dt);
 % 3. import attitude controller
 controller1 = Control_PID(drone1_gains, dt);
+controller2 = Control_LQR(drone1_q, drone1_r, drone1_params, commandSig);
 
 %% SIMULATION LOOP
 for i = 1:simulationTime/dt
     drone1_state = drone1.GetState();
-    [u_pos, cmd] = controller_pos.PositionCtrl(drone1_state, commandSig);
-    u_control = controller1.AttitudeCtrl(drone1_state, cmd);
-    u(1) = u_pos;           % thrust
-    u(2) = u_control(1);    % M1
-    u(3) = u_control(2);    % M2
-    u(4) = u_control(3);    % M3
-    u = u(:);               % column vector로 변환
+    % [u_pos, cmd] = controller_pos.PositionCtrl(drone1_state, commandSig);
+    % u_control = controller1.AttitudeCtrl(drone1_state, cmd);
+    % u(1) = u_pos;           % thrust
+    % u(2) = u_control(1);    % M1
+    % u(3) = u_control(2);    % M2
+    % u(4) = u_control(3);    % M3
+    % u = u(:);               % column vector로 변환
+    % drone1.UpdateState(u);
+    % drone1_state = drone1.GetState();
+    % stateHistory(i+1, :) = drone1_state;
+    u = controller2.AttitudeCtrl(drone1_state, commandSig);
     drone1.UpdateState(u);
     drone1_state = drone1.GetState();
     stateHistory(i+1, :) = drone1_state;

@@ -61,7 +61,7 @@ def main():
     stateHistory[0, :] = drone1_initStates
     
     # Command signal
-    pos_cmd = [1.0, -1.0, -6]
+    pos_cmd = [0.5, -1.0, -5]
     psi_cmd = 0.0 * D2R
     commandSig = np.array([pos_cmd[0], pos_cmd[1], pos_cmd[2], psi_cmd])
 
@@ -107,5 +107,5 @@ def main():
 # Standard Python entry point
 if __name__ == "__main__":
     main()
-    refSig = [1.0, -1.0, -6.0, 0.0]
+    refSig = [0.5, -1.0, -5.0, 0.0]
     plot_simulation_results(refSig)
