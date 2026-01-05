@@ -4,7 +4,7 @@ import os
 import sys
 
 def plot_simulation_results(refSig):
-    # --- 1. 기본 설정 및 데이터 로드 ---
+    # load data
     R2D = 180.0 / np.pi
     D2R = np.pi / 180.0
     dt = 0.01
@@ -18,7 +18,7 @@ def plot_simulation_results(refSig):
     z_des = refSig[2]   # [m]
     psi_des = refSig[3]  # [deg]
 
-    # --- 3. 시간 및 명령 벡터 생성 ---
+    # define time
     numPoints = stateHistory.shape[0]
     t = np.linspace(0, (numPoints - 1) * dt, numPoints)
 
@@ -28,10 +28,10 @@ def plot_simulation_results(refSig):
     z_cmd = np.ones(numPoints) * z_des
     psi_cmd = np.ones(numPoints) * psi_des
 
-    print(f"데이터 로드 완료. 총 {numPoints} 스텝, {t[-1]:.2f}초 분량의 데이터.")
+    print(f"Complete loading. {numPoints} steps, {t[-1]:.2f}sec data.")
 
     # Plotting data
-    fig, axs = plt.subplots(2, 2, figsize=(12, 8)) # Figure 크기 조절
+    fig, axs = plt.subplots(2, 2, figsize=(12, 8))
     fig.suptitle('Drone State(Roll, Pitch, Yaw, Z-dot)', fontsize=16, fontweight='bold')
 
     # Plot 1: Roll (phi)
@@ -66,13 +66,13 @@ def plot_simulation_results(refSig):
     axs[1, 1].set_ylabel('Speed (m/s)')
     axs[1, 1].legend(loc='lower right')
 
-    fig.tight_layout(rect=[0, 0.03, 1, 0.95]) # 전체 제목과 겹치지 않도록 조절
+    fig.tight_layout(rect=[0, 0.03, 1, 0.95])
     
     save_filename = 'drone_state_results(1).png'
     plt.savefig(save_filename)
     
 
-    fig1, axs1 = plt.subplots(2, 2, figsize=(12, 8)) # Figure 크기 조절
+    fig1, axs1 = plt.subplots(2, 2, figsize=(12, 8))
     fig1.suptitle(r'Drone State(X, Y, Z,$\psi$))', fontsize=16, fontweight='bold')
 
     # Plot 1: X
@@ -111,7 +111,7 @@ def plot_simulation_results(refSig):
     axs1[1, 1].set_ylabel('Angle (deg))')
     axs1[1, 1].legend(loc='lower right')
 
-    fig1.tight_layout(rect=[0, 0.03, 1, 0.95]) # 전체 제목과 겹치지 않도록 조절
+    fig1.tight_layout(rect=[0, 0.03, 1, 0.95])
     
     save_filename = 'drone_state_results(2).png'
     plt.savefig(save_filename)
