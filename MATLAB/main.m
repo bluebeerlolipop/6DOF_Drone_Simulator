@@ -70,20 +70,20 @@ controller2 = Control_LQR(drone1_q, drone1_r, drone1_params, commandSig);
 %% SIMULATION LOOP
 for i = 1:simulationTime/dt
     drone1_state = drone1.GetState();
-    % [u_pos, cmd] = controller_pos.PositionCtrl(drone1_state, commandSig);
-    % u_control = controller1.AttitudeCtrl(drone1_state, cmd);
-    % u(1) = u_pos;           % thrust
-    % u(2) = u_control(1);    % M1
-    % u(3) = u_control(2);    % M2
-    % u(4) = u_control(3);    % M3
-    % u = u(:);               % column vector로 변환
-    % drone1.UpdateState(u);
-    % drone1_state = drone1.GetState();
-    % stateHistory(i+1, :) = drone1_state;
-    u = controller2.AttitudeCtrl(drone1_state, commandSig);
+    [u_pos, cmd] = controller_pos.PositionCtrl(drone1_state, commandSig);
+    u_control = controller1.AttitudeCtrl(drone1_state, cmd);
+    u(1) = u_pos;           % thrust
+    u(2) = u_control(1);    % M1
+    u(3) = u_control(2);    % M2
+    u(4) = u_control(3);    % M3
+    u = u(:);               % column vector로 변환
     drone1.UpdateState(u);
     drone1_state = drone1.GetState();
     stateHistory(i+1, :) = drone1_state;
+    % u = controller2.AttitudeCtrl(drone1_state, commandSig);
+    % drone1.UpdateState(u);
+    % drone1_state = drone1.GetState();
+    % stateHistory(i+1, :) = drone1_state;
 
     if (drone1_state(3) >= 0)
         msgbox('Crashed!!', 'Error', 'error');
