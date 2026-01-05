@@ -65,16 +65,16 @@ def main():
     psi_cmd = 0.0 * D2R
     commandSig = np.array([pos_cmd[0], pos_cmd[1], pos_cmd[2], psi_cmd])
 
-    # 1. Initialize Drone Dynamics
+    # Initialize Drone Dynamics
     drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt)
-    # 2. Initialize Position Controller
+    # Initialize Position Controller
     controller_pos = Control_Position(pos1_gains, drone1_params, dt)
-    # 3. Initialize Attitude Controller
+    # Initialize Attitude Controller
     controller1 = Control_PID(drone1_gains, dt)
     
     u_control = np.zeros(4) # [Thrust, M1, M2, M3]
 
-    print("Starting simulation...")
+    print("Starting simulation.")
     # SIMULATION LOOP
     for i in range(numStep):
         drone1_state = drone1.GetState()
@@ -93,7 +93,7 @@ def main():
         stateHistory[i + 1, :] = drone1.GetState()
         
         # Check for crash
-        if drone1_state[2] >= 0: # Z position >= 0 (ground)
+        if drone1_state[2] >= 0:
             print(f"Crashed at step {i}!")
             stateHistory = stateHistory[:i+2, :] # Trim history
             break
