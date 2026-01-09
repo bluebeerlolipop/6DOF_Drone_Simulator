@@ -1,5 +1,11 @@
 # 6DOF_Drone_Simulator
 
+## Required Python library
+1. numpy
+2. matplotlib
+3. control
+- for more information about control library, see https://python-control.readthedocs.io/en/0.10.2/intro.html
+
 ## Position control(PID)
 - 3D Animation
 
