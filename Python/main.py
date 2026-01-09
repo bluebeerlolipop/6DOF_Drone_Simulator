@@ -18,6 +18,7 @@ from Drone_State import Drone_State
 from RPY2Rot import RPY2Rot
 from Control_Position import Control_Position
 from Control_PID import Control_PID
+from Control_LQR import Control_LQR
 from plot_sim import plot_simulation_results
 
 def main():
@@ -41,7 +42,7 @@ def main():
         0, 0, 0,    # phi, theta, psi
         0, 0, 0     # p, q, r
     ])
-    
+    ###################### Set Controller Gains ######################
     # Position Controller Gains
     pos1_gains = {
         'P_x': 0.2, 'I_x': 0.0, 'D_x': 0.15,
@@ -55,6 +56,12 @@ def main():
         'P_theta': 0.2, 'I_theta': 0.0, 'D_theta': 0.15,
         'P_psi': 0.2, 'I_psi': 0.0, 'D_psi': 0.15
     }
+
+    # LQR Controller Gains
+    drone1_q = np.array([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])
+    drone1_r = np.array([1, 1, 1, 1])
+
+    ##################################################################
     
     # History
     stateHistory = np.zeros((numStep + 1, len(drone1_initStates)))
@@ -65,32 +72,44 @@ def main():
     psi_cmd = 0.0 * D2R
     commandSig = np.array([pos_cmd[0], pos_cmd[1], pos_cmd[2], psi_cmd])
 
+    ###################### Initialize Part ######################
     # Initialize Drone Dynamics
     drone1 = Drone_State(drone1_params, drone1_initStates, simulationTime, dt)
     # Initialize Position Controller
     controller_pos = Control_Position(pos1_gains, drone1_params, dt)
     # Initialize Attitude Controller
     controller1 = Control_PID(drone1_gains, dt)
+    # Initialize LQR Controller
+    controller2 = Control_LQR(drone1_q, drone1_r, drone1_params, commandSig)
     
-    u_control = np.zeros(4) # [Thrust, M1, M2, M3]
+    u = np.zeros(4) # [Thrust, M1, M2, M3]
+
+    ##############################################################
 
     print("Starting simulation.")
     # SIMULATION LOOP
     for i in range(numStep):
         drone1_state = drone1.GetState()
         
-        # Run controllers
-        u_pos, cmd = controller_pos.PositionCtrl(drone1_state, commandSig)
-        u_att = controller1.AttitudeCtrl(drone1_state, cmd)
+        # # Run PID controllers
+        # u_pos, cmd = controller_pos.PositionCtrl(drone1_state, commandSig)
+        # u_control = controller1.AttitudeCtrl(drone1_state, cmd)
         
-        u_control[0] = u_pos      # thrust
-        u_control[1:4] = u_att    # M1, M2, M3
+        # u[0] = u_pos            # thrust
+        # u[1:4] = u_control      # M1, M2, M3
         
-        # Update drone state
-        drone1.UpdateState(u_control)
-        
-        # Store history
-        stateHistory[i + 1, :] = drone1.GetState()
+        # # Update drone state
+        # drone1.UpdateState(u)
+        # drone1_state = drone1.GetState()
+
+        # # Store history
+        # stateHistory[i + 1, :] = drone1.state
+
+        # Run LQR controllers
+        u = controller2.AttitudeCtrl(drone1_state, commandSig)
+        drone1.UpdateState(u)
+        drone1_state = drone1.GetState()
+        stateHistory[i + 1, :] = drone1_state
         
         # Check for crash
         if drone1_state[2] >= 0:
